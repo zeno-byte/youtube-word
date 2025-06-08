@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4  # Updated to v4
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5  # Updated to v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -55,4 +55,35 @@ jobs:
         run: python3 -m pip show moviepy
 
       - name: Test MoviePy import
-        run: python3 -c "from moviepy.editor import VideoFileClip; print('MoviePy
+        run: python3 -c "from moviepy.editor import VideoFileClip; print('MoviePy imported successfully')"
+
+      - name: List installed packages and Python path
+        run: |
+          python3 -m pip list
+          python3 -c "import sys; print(sys.executable); print(sys.path)"
+
+      - name: Generate video
+        env:
+          COMMUNITY_LANGUAGE: en
+          IMAGEMAGICK_BINARY: /usr/bin/convert
+          ELEVEN_API_KEY: ${{ secrets.ELEVEN_API_KEY }}
+        run: /usr/bin/env python3 generate_video.py
+
+      - name: Check generated video
+        run: |
+          ls -lh output_video.mp4
+          file output_video.mp4
+
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-video
+          path: output_video.mp4
+          if-no-files-found: error
+
+      - name: Upload to YouTube
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: /usr/bin/env python3 upload_to_youtube.py
