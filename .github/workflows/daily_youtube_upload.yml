@@ -18,11 +18,15 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg and ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg imagemagick
 
-      - name: Verify FFmpeg
-        run: ffmpeg -version
+      - name: Verify FFmpeg and ImageMagick
+        run: |
+          ffmpeg -version
+          convert -version  # ImageMagick binary
 
       - name: Install dependencies
         run: |
@@ -43,6 +47,7 @@ jobs:
       - name: Generate video
         env:
           COMMUNITY_LANGUAGE: en
+          IMAGEMAGICK_BINARY: /usr/bin/convert  # Explicitly set ImageMagick binary
         run: /usr/bin/env python3 generate_video.py
 
       - name: Upload to YouTube
