@@ -2,8 +2,8 @@ name: Daily YouTube Upload
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # Runs daily at 9:00 UTC
-  workflow_dispatch:      # Allows manual runs from the GitHub UI
+    - cron: '0 9 * * *'  # Every day at 9:00 UTC
+  workflow_dispatch:      # Manual trigger support
 
 jobs:
   upload:
@@ -29,17 +29,23 @@ jobs:
       - name: Verify moviepy installation
         run: python3 -m pip show moviepy
 
-      - name: Debug Python environment
+      - name: List installed packages and Python path
         run: |
           python3 -m pip list
           python3 -c "import sys; print(sys.executable); print(sys.path)"
 
       - name: Generate video
         env:
-          COMMUNITY_LANGUAGE: en  # or 'fr' depending on which word list you want
+          COMMUNITY_LANGUAGE: en  # Change to 'fr' for French learners
         run: python3 generate_video.py
 
       - name: Upload to YouTube
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python3 upload_to_youtube.py
+ YouTube
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
