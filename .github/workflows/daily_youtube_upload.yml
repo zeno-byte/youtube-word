@@ -18,20 +18,35 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install FFmpeg and ImageMagick
+      - name: Install FFmpeg, ImageMagick, and fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg imagemagick
+          sudo apt-get install -y ffmpeg imagemagick fonts-dejavu
+
+      - name: Debug ImageMagick policy before changes
+        run: |
+          echo "ImageMagick policy before changes:"
+          cat /etc/ImageMagick-6/policy.xml || echo "Policy file not found"
 
       - name: Configure ImageMagick policy
         run: |
-          sudo sed -i 's/<policy domain="coder" rights="none" pattern="TEXT" \/>/<policy domain="coder" rights="read|write" pattern="TEXT" \/>/' /etc/ImageMagick-6/policy.xml
-          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*" \/>/<policy domain="path" rights="read|write" pattern="@*" \/>/' /etc/ImageMagick-6/policy.xml
+          sudo sed -i 's/<policy domain="coder" rights="none" pattern="TEXT" \/>/<policy domain="coder" rights="read|write" pattern="TEXT" \/>/' /etc/ImageMagick-6/policy.xml || true
+          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*" \/>/<policy domain="path" rights="read|write" pattern="@*" \/>/' /etc/ImageMagick-6/policy.xml || true
+          # Ensure no restrictive policies block temporary files
+          sudo sed -i '/<policy domain="path" rights="none" pattern="@\*" \/>/d' /etc/ImageMagick-6/policy.xml || true
+          # Add explicit policy to allow all temporary file operations
+          echo '<policy domain="path" rights="read|write" pattern="@*" />' | sudo tee -a /etc/ImageMagick-6/policy.xml
+
+      - name: Debug ImageMagick policy after changes
+        run: |
+          echo "ImageMagick policy after changes:"
+          cat /etc/ImageMagick-6/policy.xml
 
       - name: Verify FFmpeg and ImageMagick
         run: |
           ffmpeg -version
           convert -version
+          echo "IMAGEMAGICK_BINARY: $IMAGEMAGICK_BINARY"
 
       - name: Install dependencies
         run: |
