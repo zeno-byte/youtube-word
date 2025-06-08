@@ -1,19 +1,18 @@
 import os
 import tempfile
 from moviepy.editor import TextClip, AudioFileClip
-from moviepy.config import change_settings
-from elevenlabs import ElevenLabs
-
-# Force Pillow for text rendering (bypass ImageMagick)
-change_settings({"IMAGEMAGICK_BINARY": None})
+from elevenlabs.client import ElevenLabs
 
 # Narration text (replace with your actual text source)
 narration_text = "Hello, welcome to today's word of the day!"
 
-# Debug: Print environment and narration_text
+# Debug: Print environment, narration_text, and elevenlabs version
 print(f"narration_text: {narration_text}")
 print(f"COMMUNITY_LANGUAGE: {os.getenv('COMMUNITY_LANGUAGE', 'en')}")
 print(f"ELEVEN_API_KEY: {'set' if os.getenv('ELEVEN_API_KEY') else 'not set'}")
+print(f"IMAGEMAGICK_BINARY: {os.getenv('IMAGEMAGICK_BINARY')}")
+import elevenlabs
+print(f"elevenlabs version: {elevenlabs.__version__}")
 
 # Initialize ElevenLabs client
 client = ElevenLabs(api_key=os.getenv('ELEVEN_API_KEY'))
@@ -22,22 +21,23 @@ if not os.getenv('ELEVEN_API_KEY'):
 
 # Generate narration audio using ElevenLabs
 audio_file = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False).name
-audio = client.generate(
-    text=narration_text,
-    voice="Rachel",  # Adjust voice as needed (e.g., "Adam", "Bella")
-    model="eleven_monolingual_v1"
-)
 with open(audio_file, "wb") as f:
-    f.write(audio)
+    audio = client.generate(
+        text=narration_text,
+        voice="Rachel",  # Adjust voice as needed (e.g., "Adam", "Bella")
+        model="eleven_monolingual_v1"
+    )
+    for chunk in audio:
+        f.write(chunk)
 
-# Create text clip using Pillow (method='label')
+# Create text clip using ImageMagick (method='caption')
 text_clip = TextClip(
     narration_text,
     fontsize=40,
     color='white',
     bg_color='black',
     size=(720, 1280),
-    method='label'  # Use Pillow instead of ImageMagick
+    method='caption'  # Use ImageMagick for word-wrapping
 )
 
 # Load audio and set clip duration
