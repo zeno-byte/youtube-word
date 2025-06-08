@@ -23,6 +23,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick fonts-dejavu
 
+              - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install moviepy gTTS google-auth google-auth-oauthlib google-api-python-client elevenlabs
+
+
       - name: Debug ImageMagick policy before changes
         run: |
           echo "ImageMagick policy before changes:"
