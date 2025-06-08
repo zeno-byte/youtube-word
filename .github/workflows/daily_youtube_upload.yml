@@ -23,10 +23,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick
 
+      - name: Configure ImageMagick policy
+        run: |
+          sudo sed -i 's/<policy domain="coder" rights="none" pattern="TEXT" \/>/<policy domain="coder" rights="read|write" pattern="TEXT" \/>/' /etc/ImageMagick-6/policy.xml
+          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*" \/>/<policy domain="path" rights="read|write" pattern="@*" \/>/' /etc/ImageMagick-6/policy.xml
+
       - name: Verify FFmpeg and ImageMagick
         run: |
           ffmpeg -version
-          convert -version  # ImageMagick binary
+          convert -version
 
       - name: Install dependencies
         run: |
@@ -47,7 +52,7 @@ jobs:
       - name: Generate video
         env:
           COMMUNITY_LANGUAGE: en
-          IMAGEMAGICK_BINARY: /usr/bin/convert  # Explicitly set ImageMagick binary
+          IMAGEMAGICK_BINARY: /usr/bin/convert
         run: /usr/bin/env python3 generate_video.py
 
       - name: Upload to YouTube
